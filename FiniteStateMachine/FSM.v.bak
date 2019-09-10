@@ -1,0 +1,37 @@
+module FSM (clk, reset, sel_btn, return_btn, coin_val, coffee_make, coin_return, confirm, coin, coin_in, coin_out);
+	input clk, reset;
+	input sel_btn, return_btn, coin;
+	input [15:0] coin_val;
+	
+	output reg coffee_make, confirm, coin_return;
+	
+	reg [3;0] now_state, next_state;
+	
+	parameter idle = 0, selection_st = 1, ready_st = 2, product_out = 3, return_st = 9;
+	parameter product_val = 500;
+	
+	always @(sel_btn, return_btn, coin)
+	begin
+		next_state = now_state;
+		case(now_state)
+		idle : if (coin) next_state = selection_st;
+		selection_st : begin
+			if (return_btn = 1) next_state = return_st;
+			else if (coin_val >= product_val) next_state = ready;
+			end
+		ready_st : begin
+			if (return_btn = 1) next_state = return_st;
+			else if (sel_btn) next_state = product_out;
+			end
+		product_out : if (!coin_val) next_state = return_st;
+		default : next_state = idle;
+		endcase
+	end
+	
+	always @(posedge clk)
+	begin
+	if (reset) now_state <= idle;
+	else if now_state <= next_state;
+	
+	
+	endmodule

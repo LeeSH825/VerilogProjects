@@ -1,0 +1,37 @@
+module Edge_Detector(clk, inA, outA);
+
+input clk, inA;
+wire now_state, next_state;
+wire edg;
+
+output outA;
+
+parameter idle = 0, detect = 1;
+
+always @ (clk)
+	begin
+	next_state <= now_state;
+		case(now_state)
+			idle : if(edg == 1) next_state = detect;
+			detect : ;
+			default : next_state = idle;
+			
+		endcase
+	end
+
+always @ (posedge inA, negedge inA)
+	edg = 1'b1;
+	
+always @ (now_state)
+	begin
+		case (now_state)
+			idle : output = 0;
+			detect : begin
+							always @ (posedge clk or negedge clk)
+								output = 1;
+							always @ (posedge clk or negedge clk)
+								next_state <= idle ;
+						end
+	end
+	
+endmodule

@@ -1,0 +1,99 @@
+module clock_Modifier (clk, rst, up_btn, st_btn, mode_btn, modifying, in_Sec, in_Min, in_Hour, in_Day, in_Mon, in_Year, out_Sec, out_Min, out_Hour, out_Day, out_Mon, out_Year);
+
+input clk, rst, up_btn, st_btn, mode_btn;
+
+input [5:0] in_Sec, in_Min, in_Hour;
+input [4:0] in_Day, in_Mon;
+input [12:0] in_Year;
+
+output reg modifying;
+output out_Sec, out_Min, out_Hour, out_Day, out_Mon, out_Year;
+
+reg mod_state = 'b0;
+reg [5:0] out_Sec, out_Min, out_Hour;
+reg [4:0] out_Day, out_Mon;
+reg [12:0] out_Year;
+
+reg [5:0] Sec, Min, Hour;
+reg [4:0] Day, Mon;
+reg [12:0] Year;
+reg [2:0] state;
+
+
+always @ (negedge rst)  
+begin
+	if (!rst)
+		begin
+			state <= 3'b111; //state initial set
+			mod_state <= 'b1; //modify starts
+		end
+end
+
+always @ (posedge st_btn)
+begin
+
+	state <= state + 3'b1;
+	
+	if (state ==3'b111) //initial value
+		begin
+			state <= 3'b001; //goto sec modify
+		end
+		
+	if (state == 3'b110) //year modify finished
+		begin
+			state <= 3'b000;
+		end
+end
+
+always @ (posedge clk)
+begin
+	
+Sec <= in_Sec;
+Min <= in_Min;
+Hour <= in_Hour;
+Day <= in_Day;
+Mon <= in_Mon;
+Year <= in_Year;
+modifying = mod_state;
+
+	if (up_btn == 1)
+		begin
+			case (state)
+			3'b000 :	begin //Modify confirm
+							mod_state <= 'b0;
+						end
+			3'b001 : begin //Modify Second 1
+							Sec <= Sec + 'b1;
+						end
+						
+			3'b010 : begin //Modify Minute 2
+							Min <= Min + 'b1;
+						end
+						
+			3'b011 : begin //Modify Hour 3
+							Hour <= Hour + 'b1;
+						end
+						
+			3'b100 : begin //Modify Day 4
+							Day<= Sec + 'b1;
+						end
+						
+			3'b101 : begin //Modify Month 5 
+							Mon <= Mon + 'b1;
+						end
+						
+			3'b110 : begin //Modify Year 6
+							Year <= Year + 'b1;
+						end
+			endcase
+		end
+		
+	out_Sec <= Sec;
+	out_Min <= Min;
+	out_Hour <= Hour;
+	out_Day <= Day;
+	out_Mon <= Mon;
+	out_Year <= Year;
+end
+
+endmodule
